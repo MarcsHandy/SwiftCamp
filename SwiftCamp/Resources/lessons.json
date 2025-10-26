@@ -1,0 +1,63 @@
+[
+  {
+    "id": "variables",
+    "title": "Variables & Constants",
+    "description": "Learn about var, let, and basic data types",
+    "difficulty": "beginner",
+    "theory": "In Swift, we use 'var' for variables that can change and 'let' for constants that cannot change. Variables are fundamental building blocks for storing data in your programs.",
+    "codeExample": "var name = \"John\"\nlet age = 25\nname = \"Jane\"\n// age = 26 // This would cause an error because age is a constant",
+    "category": "Swift Basics",
+    "estimatedTime": 10,
+    "dependencies": [],
+    "challenge": {
+      "instructions": "Create a variable called 'score' with initial value 100, then update it to 150. Finally, create a constant called 'playerName' with your name.",
+      "starterCode": "// Create your variables and constants here\n",
+      "solution": "var score = 100\nscore = 150\nlet playerName = \"Alex\"",
+      "hints": [
+        "Use 'var' for score since it needs to change",
+        "Use 'let' for playerName since it won't change",
+        "Don't forget the equal signs for assignment"
+      ],
+      "testCases": [
+        {
+          "input": "score",
+          "expectedOutput": "150",
+          "description": "Score should be updated to 150"
+        },
+        {
+          "input": "playerName",
+          "expectedOutput": "Alex",
+          "description": "Player name should be a constant string"
+        }
+      ]
+    }
+  },
+  {
+    "id": "optionals",
+    "title": "Optionals",
+    "description": "Understand optional values and safe unwrapping",
+    "difficulty": "beginner",
+    "theory": "Optionals represent values that might be missing. We use ? after the type to declare an optional. You can safely unwrap optionals using if let or guard let.",
+    "codeExample": "var optionalName: String? = \"John\"\nvar optionalAge: Int? = nil\n\nif let name = optionalName {\n    print(\"Hello, \\(name)\")\n} else {\n    print(\"No name provided\")\n}",
+    "category": "Swift Basics",
+    "estimatedTime": 15,
+    "dependencies": ["variables"],
+    "challenge": {
+      "instructions": "Create an optional string called 'optionalEmail' with value nil. Then use if let to safely unwrap it and print a message.",
+      "starterCode": "// Create and unwrap your optional here\n",
+      "solution": "var optionalEmail: String? = nil\n\nif let email = optionalEmail {\n    print(\"Email: \\(email)\")\n} else {\n    print(\"No email provided\")\n}",
+      "hints": [
+        "Declare the optional with String? type",
+        "Use if let to safely unwrap",
+        "Provide both cases: when there's a value and when it's nil"
+      ],
+      "testCases": [
+        {
+          "input": "optionalEmail == nil",
+          "expectedOutput": "true",
+          "description": "Optional email should be nil initially"
+        }
+      ]
+    }
+  }
+]

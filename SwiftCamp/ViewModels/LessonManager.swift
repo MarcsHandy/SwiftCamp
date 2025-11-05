@@ -4,7 +4,6 @@ class LessonManager: ObservableObject {
     @Published var lessons: [Lesson] = []
     @Published var completedLessons: Set<String> = []
     @Published var userProgress: UserProgress
-    @Published var currentLesson: Lesson?
     
     init() {
         self.userProgress = UserProgress(
@@ -20,49 +19,21 @@ class LessonManager: ObservableObject {
     }
     
     func loadLessons() {
-        if let url = Bundle.main.url(forResource: "lessons", withExtension: "json") {
-            do {
-                let data = try Data(contentsOf: url)
-                let decodedLessons = try JSONDecoder().decode([Lesson].self, from: data)
-                lessons = decodedLessons
-                return 
-            } catch {
-                print("Error loading lessons from JSON: \(error)")
-            }
+        guard let url = Bundle.main.url(forResource: "lessons", withExtension: "json") else {
+            print("❌ Could not find lessons.json file")
+            lessons = []
+            return
         }
         
-        // If JSON fails, use sample lessons
-        lessons = createSampleLessons()
-    }
-    
-    private func createSampleLessons() -> [Lesson] {
-        return [
-            Lesson(
-                id: "variables",
-                title: "Variables & Constants",
-                description: "Learn about var, let, and basic data types",
-                difficulty: .beginner,
-                theory: "In Swift, we use 'var' for variables that can change and 'let' for constants that cannot change. Variables are fundamental building blocks for storing data in your programs.",
-                codeExample: "var name = \"John\"\nlet age = 25\nname = \"Jane\"\n// age = 26 // This would cause an error because age is a constant",
-                challenge: Challenge(
-                    instructions: "Create a variable called 'score' with initial value 100, then update it to 150. Finally, create a constant called 'playerName' with your name.",
-                    starterCode: "// Create your variables and constants here\n",
-                    solution: "var score = 100\nscore = 150\nlet playerName = \"Alex\"",
-                    testCases: [
-                        TestCase(input: "score", expectedOutput: "150", description: "Score should be updated to 150"),
-                        TestCase(input: "playerName", expectedOutput: "Alex", description: "Player name should be a constant string")
-                    ],
-                    hints: [
-                        "Use 'var' for score since it needs to change",
-                        "Use 'let' for playerName since it won't change",
-                        "Don't forget the equal signs for assignment"
-                    ]
-                ),
-                dependencies: [],
-                estimatedTime: 10,
-                category: "Swift Basics"
-            )
-        ]
+        do {
+            let data = try Data(contentsOf: url)
+            let decodedLessons = try JSONDecoder().decode([Lesson].self, from: data)
+            lessons = decodedLessons
+            print("✅ Successfully loaded \(lessons.count) lessons from JSON")
+        } catch {
+            print("❌ Error loading lessons from JSON: \(error)")
+            lessons = []
+        }
     }
     
     func isLessonLocked(_ lesson: Lesson) -> Bool {
@@ -74,11 +45,7 @@ class LessonManager: ObservableObject {
     }
     
     func completeLesson(_ lesson: Lesson) {
-        print("🎯 Completing lesson: \(lesson.id)")
-        guard !completedLessons.contains(lesson.id) else {
-            print("⚠️ Lesson already completed")
-            return
-        }
+        guard !completedLessons.contains(lesson.id) else { return }
         
         completedLessons.insert(lesson.id)
         userProgress.completedLessons.insert(lesson.id)
@@ -88,11 +55,7 @@ class LessonManager: ObservableObject {
         saveUserProgress()
         updateOverallProgress()
         
-        print("✅ Lesson completed! Completed lessons: \(completedLessons)")
-        print("📊 Total XP: \(userProgress.totalXp)")
-        
-        // Force UI update
-        objectWillChange.send()
+        print("✅ Completed lesson: \(lesson.id)")
     }
     
     private func calculateXp(for lesson: Lesson) -> Int {

@@ -11,19 +11,10 @@ struct CourseListView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     progressHeader
                     
-                    LazyVStack(spacing: 12) {
-                        ForEach(lessonManager.lessons) { lesson in
-                            LessonCard(
-                                lesson: lesson,
-                                isLocked: lessonManager.isLessonLocked(lesson),
-                                isCompleted: lessonManager.completedLessons.contains(lesson.id)
-                            )
-                            .onTapGesture {
-                                if lessonManager.canStartLesson(lesson) {
-                                    selectedLesson = lesson
-                                }
-                            }
-                        }
+                    if lessonManager.lessons.isEmpty {
+                        emptyStateView
+                    } else {
+                        lessonsList
                     }
                 }
                 .padding()
@@ -43,6 +34,40 @@ struct CourseListView: View {
             }
             .sheet(isPresented: $showingProfile) {
                 ProfileView(lessonManager: lessonManager)
+            }
+        }
+    }
+    
+    private var emptyStateView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "book.closed")
+                .font(.system(size: 60))
+                .foregroundColor(.gray)
+            Text("No Lessons Available")
+                .font(.title2)
+                .fontWeight(.semibold)
+            Text("Check if lessons.json is properly included in the app bundle.")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+    }
+    
+    private var lessonsList: some View {
+        LazyVStack(spacing: 12) {
+            ForEach(lessonManager.lessons) { lesson in
+                LessonCard(
+                    lesson: lesson,
+                    isLocked: lessonManager.isLessonLocked(lesson),
+                    isCompleted: lessonManager.completedLessons.contains(lesson.id)
+                )
+                .onTapGesture {
+                    if lessonManager.canStartLesson(lesson) {
+                        selectedLesson = lesson
+                    }
+                }
             }
         }
     }

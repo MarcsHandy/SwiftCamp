@@ -157,3 +157,4 @@ class LessonManager: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "userProgress")
     }
 }
+

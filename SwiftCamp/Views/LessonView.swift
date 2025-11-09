@@ -9,32 +9,30 @@ struct LessonView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    headerSection
-                    theorySection
-                    exampleSection
-                    
-                    if let challenge = lesson.challenge {
-                        challengeSection(challenge: challenge)
-                    }
-                }
-                .padding()
-            }
-            .navigationTitle(lesson.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
-            .sheet(isPresented: $showChallenge) {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                headerSection
+                theorySection
+                exampleSection
+                
                 if let challenge = lesson.challenge {
-                    ChallengeView(challenge: challenge)
+                    challengeSection(challenge: challenge)
                 }
+            }
+            .padding()
+        }
+        .navigationTitle(lesson.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Done") {
+                    dismiss()
+                }
+            }
+        }
+        .sheet(isPresented: $showChallenge) {
+            if let challenge = lesson.challenge {
+                ChallengeView(challenge: challenge)
             }
         }
         .onAppear {
@@ -60,9 +58,10 @@ struct LessonView: View {
     
     private var theorySection: some View {
         GroupBox("Theory") {
-            Text(lesson.theory)
+            Text(.init(lesson.theory))
                 .font(.body)
                 .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
         }
     }
     
@@ -96,38 +95,73 @@ struct LessonView: View {
     
     private func challengeSection(challenge: Challenge) -> some View {
         GroupBox("Practice") {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(challenge.instructions)
-                    .font(.body)
-                
-                CodeEditorView(code: $userCode, isEditable: true)
-                
-                HStack {
-                    Button("Start Challenge") {
-                        showChallenge = true
-                    }
-                    .buttonStyle(.borderedProminent)
+            VStack(alignment: .leading, spacing: 16) {
+                // Instructions with fixed height and scrolling
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Instructions")
+                        .font(.headline)
+                        .foregroundColor(.primary)
                     
-                    Button("Complete Lesson") {
-                        lessonManager.completeLesson(lesson)
-                        dismiss()
+                    ScrollView {
+                        Text(challenge.instructions)
+                            .font(.body)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.bottom, 8) // Add some bottom padding
                     }
-                    .buttonStyle(.bordered)
-                    .disabled(lessonManager.completedLessons.contains(lesson.id)) // FIXED: Disable when already completed
-                    .opacity(lessonManager.completedLessons.contains(lesson.id) ? 0.5 : 1.0) // FIXED: Fade when completed
+                    .frame(maxHeight: 150) // Fixed height for instructions
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.gray.opacity(0.1))
+                    )
                 }
                 
-                if lessonManager.completedLessons.contains(lesson.id) {
+                // Code editor with fixed height
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Your Solution")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    CodeEditorView(code: $userCode, isEditable: true)
+                        .frame(minHeight: 200, maxHeight: 300) // Ensure good height for code
+                }
+                
+                // Buttons - always visible at the bottom
+                VStack(spacing: 12) {
                     HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Lesson Completed!")
-                            .font(.subheadline)
-                            .foregroundColor(.green)
+                        Button("Start Challenge") {
+                            showChallenge = true
+                        }
+                        .buttonStyle(.borderedProminent)
+                        
+                        Spacer()
+                        
+                        Button("Complete Lesson") {
+                            Task {
+                                await lessonManager.completeLesson(lesson)
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(lessonManager.completedLessons.contains(lesson.id))
+                        .opacity(lessonManager.completedLessons.contains(lesson.id) ? 0.5 : 1.0)
                     }
-                    .padding(8)
-                    .background(Color.green.opacity(0.1))
-                    .cornerRadius(8)
+                    
+                    if lessonManager.completedLessons.contains(lesson.id) {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Lesson Completed!")
+                                .font(.subheadline)
+                                .foregroundColor(.green)
+                            Spacer()
+                            Text("+\(calculateXp(for: lesson)) XP")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.green)
+                        }
+                        .padding(12)
+                        .background(Color.green.opacity(0.1))
+                        .cornerRadius(8)
+                    }
                 }
             }
         }
@@ -141,6 +175,14 @@ struct LessonView: View {
             return "Optionals handle the absence of a value. We use 'if let' to safely unwrap optionals and access their values only when they exist."
         default:
             return "Study the code example to understand how this Swift concept works. Pay attention to the syntax and structure."
+        }
+    }
+    
+    private func calculateXp(for lesson: Lesson) -> Int {
+        switch lesson.difficulty {
+        case .beginner: return 10
+        case .intermediate: return 25
+        case .advanced: return 50
         }
     }
 }
@@ -169,30 +211,5 @@ struct DifficultyBadge: View {
         case .intermediate: return .orange
         case .advanced: return .red
         }
-    }
-}
-
-struct LessonView_Previews: PreviewProvider {
-    static var previews: some View {
-        let sampleLesson = Lesson(
-            id: "variables",
-            title: "Variables & Constants",
-            description: "Learn about var, let, and basic data types",
-            difficulty: .beginner,
-            theory: "In Swift, we use 'var' for variables that can change and 'let' for constants that cannot change.",
-            codeExample: "var name = \"John\"\nlet age = 25",
-            challenge: Challenge(
-                instructions: "Create a variable and a constant",
-                starterCode: "// Your code here",
-                solution: "var score = 100\nlet player = \"Alex\"",
-                testCases: [],
-                hints: []
-            ),
-            dependencies: [],
-            estimatedTime: 10,
-            category: "Swift Basics"
-        )
-        
-        LessonView(lesson: sampleLesson, lessonManager: LessonManager())
     }
 }

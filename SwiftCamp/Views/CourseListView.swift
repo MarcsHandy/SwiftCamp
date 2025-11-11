@@ -2,22 +2,27 @@ import SwiftUI
 
 struct CourseListView: View {
     @StateObject private var lessonManager = LessonManager()
-    @State private var selectedLesson: Lesson?
     @State private var showingProfile = false
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    progressHeader
-                    
-                    if lessonManager.lessons.isEmpty {
-                        emptyStateView
-                    } else {
-                        lessonsList
+            ZStack {
+                // Background color for full screen
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        progressHeader
+                        
+                        if lessonManager.lessons.isEmpty {
+                            emptyStateView
+                        } else {
+                            lessonsList
+                        }
                     }
+                    .padding()
                 }
-                .padding()
             }
             .navigationTitle("SwiftCamp")
             .toolbar {
@@ -29,13 +34,11 @@ struct CourseListView: View {
                     }
                 }
             }
-            .sheet(item: $selectedLesson) { lesson in
-                LessonView(lesson: lesson, lessonManager: lessonManager)
-            }
             .sheet(isPresented: $showingProfile) {
                 ProfileView(lessonManager: lessonManager)
             }
         }
+        .navigationViewStyle(.stack)
     }
     
     private var emptyStateView: some View {
@@ -53,21 +56,25 @@ struct CourseListView: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: .gray.opacity(0.2), radius: 5)
     }
     
     private var lessonsList: some View {
         LazyVStack(spacing: 12) {
             ForEach(lessonManager.lessons) { lesson in
-                LessonCard(
-                    lesson: lesson,
-                    isLocked: lessonManager.isLessonLocked(lesson),
-                    isCompleted: lessonManager.completedLessons.contains(lesson.id)
-                )
-                .onTapGesture {
-                    if lessonManager.canStartLesson(lesson) {
-                        selectedLesson = lesson
-                    }
+                // CHANGED: Use NavigationLink instead of .sheet
+                NavigationLink(destination: LessonView(lesson: lesson, lessonManager: lessonManager)) {
+                    LessonCard(
+                        lesson: lesson,
+                        isLocked: lessonManager.isLessonLocked(lesson),
+                        isCompleted: lessonManager.completedLessons.contains(lesson.id)
+                    )
                 }
+                .disabled(lessonManager.isLessonLocked(lesson))
+                .buttonStyle(PlainButtonStyle())
+                .opacity(lessonManager.isLessonLocked(lesson) ? 0.6 : 1.0)
             }
         }
     }

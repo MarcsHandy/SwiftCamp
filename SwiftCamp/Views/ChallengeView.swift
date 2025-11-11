@@ -38,6 +38,8 @@ struct ChallengeView: View {
                 }
             }
         }
+        .navigationViewStyle(.stack) // ← ADD THIS FOR IPAD
+        .ignoresSafeArea() // ← ADD THIS FOR FULL SCREEN
     }
     
     private var instructionsSection: some View {

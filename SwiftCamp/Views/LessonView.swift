@@ -30,7 +30,7 @@ struct LessonView: View {
                 }
             }
         }
-        .sheet(isPresented: $showChallenge) {
+        .fullScreenCover(isPresented: $showChallenge) { // ← CHANGED TO fullScreenCover
             if let challenge = lesson.challenge {
                 ChallengeView(challenge: challenge)
             }
@@ -40,6 +40,7 @@ struct LessonView: View {
         }
     }
     
+    // ... ALL YOUR EXISTING CODE BELOW STAYS EXACTLY THE SAME
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -106,9 +107,9 @@ struct LessonView: View {
                         Text(challenge.instructions)
                             .font(.body)
                             .fixedSize(horizontal: false, vertical: true)
-                            .padding(.bottom, 8) // Add some bottom padding
+                            .padding(.bottom, 8)
                     }
-                    .frame(maxHeight: 150) // Fixed height for instructions
+                    .frame(maxHeight: 150)
                     .background(
                         RoundedRectangle(cornerRadius: 6)
                             .fill(Color.gray.opacity(0.1))
@@ -122,7 +123,7 @@ struct LessonView: View {
                         .foregroundColor(.primary)
                     
                     CodeEditorView(code: $userCode, isEditable: true)
-                        .frame(minHeight: 200, maxHeight: 300) // Ensure good height for code
+                        .frame(minHeight: 200, maxHeight: 300)
                 }
                 
                 // Buttons - always visible at the bottom

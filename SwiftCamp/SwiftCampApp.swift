@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct SwiftMasterApp: App {
+struct SwiftCampApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()

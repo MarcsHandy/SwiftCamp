@@ -34,6 +34,7 @@ struct ProfileView: View {
                 Text("Are you sure you want to reset all your progress? This cannot be undone.")
             }
         }
+        .navigationViewStyle(.stack) // ← ADDED THIS LINE FOR IPAD FULL SCREEN
     }
     
     private var headerSection: some View {
